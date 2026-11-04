@@ -2492,7 +2492,40 @@ pub fn rustdesk_interval(i: Interval) -> ThrottledInterval {
     ThrottledInterval::new(i)
 }
 
+/// FSAS Technologies branding: fixed app name, own rendezvous/relay server and
+/// public key. Applied before any `custom.txt` so every process (UI, --server,
+/// --cm, service) sees the same configuration.
+pub const FSAS_APP_NAME: &str = "FSASDESK";
+pub const FSAS_SERVER: &str = "51.170.47.104";
+pub const FSAS_SERVER_KEY: &str = "sX+5ski2UMGOEVul39ihwBBDyXcI1qGFMnKOUMA+hBI=";
+/// Ignore `host=`/`key=` in the executable name (see `get_license_from_exe_name`).
+pub const FSAS_LOCK_SERVER: bool = true;
+
+fn apply_fsas_branding() {
+    *config::APP_NAME.write().unwrap() = FSAS_APP_NAME.to_owned();
+    {
+        let mut overwrite = config::OVERWRITE_SETTINGS.write().unwrap();
+        overwrite.insert(
+            keys::OPTION_CUSTOM_RENDEZVOUS_SERVER.to_owned(),
+            FSAS_SERVER.to_owned(),
+        );
+        overwrite.insert(keys::OPTION_RELAY_SERVER.to_owned(), FSAS_SERVER.to_owned());
+        overwrite.insert(keys::OPTION_KEY.to_owned(), FSAS_SERVER_KEY.to_owned());
+        // Never let a remote peer change this machine's settings.
+        overwrite.insert(
+            keys::OPTION_ALLOW_REMOTE_CONFIG_MODIFICATION.to_owned(),
+            "N".to_owned(),
+        );
+    }
+    {
+        let mut builtin = config::BUILTIN_SETTINGS.write().unwrap();
+        // Users cannot point the client at another server.
+        builtin.insert(keys::OPTION_HIDE_SERVER_SETTINGS.to_owned(), "Y".to_owned());
+    }
+}
+
 pub fn load_custom_client() {
+    apply_fsas_branding();
     #[cfg(debug_assertions)]
     if let Ok(data) = std::fs::read_to_string("./custom.txt") {
         read_custom_client(data.trim());

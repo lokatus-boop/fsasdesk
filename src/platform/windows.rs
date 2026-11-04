@@ -2161,6 +2161,11 @@ pub fn prepare_custom_client_update() -> ResultType<bool> {
 }
 
 pub fn get_license_from_exe_name() -> ResultType<CustomServer> {
+    // FSASDESK: the server and key are fixed at build time, so a renamed exe
+    // (host=...,key=...) must not be able to redirect the client elsewhere.
+    if crate::common::FSAS_LOCK_SERVER {
+        bail!("Custom server from the executable name is disabled in FSASDESK");
+    }
     let mut exe = std::env::current_exe()?.to_str().unwrap_or("").to_owned();
     // if defined portable appname entry, replace original executable name with it.
     if let Ok(portable_exe) = std::env::var(PORTABLE_APPNAME_RUNTIME_ENV_KEY) {
