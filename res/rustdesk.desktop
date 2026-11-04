@@ -1,6 +1,6 @@
 [Desktop Entry]
-Name=RustDesk
-GenericName=Remote Desktop
+Name=FSASDESK
+GenericName=Soporte remoto FSAS
 Comment=Remote Desktop
 Exec=rustdesk %u
 Icon=rustdesk
